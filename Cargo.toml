@@ -1,0 +1,8 @@
+[package]
+
+name = "futf"
+version = "0.0.1"
+authors = ["Keegan McAllister <kmcallister@mozilla.com>"]
+
+[dependencies]
+mac = "0"
