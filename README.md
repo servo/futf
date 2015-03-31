@@ -1,5 +1,7 @@
 # futf
 
+[![Build Status](https://travis-ci.org/kmcallister/futf.svg?branch=master)](https://travis-ci.org/kmcallister/futf)
+
 futf is a library for *flexible* UTF-8, or UTF-8 *fragments*. I don't know.
 
 Anyway, it takes an index into a byte buffer and tells you things about the
