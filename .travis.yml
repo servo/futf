@@ -3,4 +3,4 @@ script:
   - cargo test
   - cargo doc
 after_success:
-  - scripts/travis-doc-upload.sh
+  - curl https://raw.githubusercontent.com/kmcallister/travis-doc-upload/master/travis-doc-upload.sh | sh
