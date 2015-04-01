@@ -96,7 +96,7 @@ fn classify_whole() {
         for idx in 0 .. JUNK.len() - 3 {
             let mut buf = JUNK.to_owned();
             let ch = format!("{}", c).into_bytes();
-            bytes::copy_memory(&mut buf[idx..idx+4], &ch);
+            bytes::copy_memory(&ch, &mut buf[idx..idx+4]);
 
             for j in 0 .. ch.len() {
                 let class = classify(&buf, idx+j).unwrap();
@@ -123,7 +123,7 @@ fn classify_surrogates() {
     ] {
         for idx in 0 .. JUNK.len() - 2 {
             let mut buf = JUNK.to_owned();
-            bytes::copy_memory(&mut buf[idx..idx+3], b);
+            bytes::copy_memory(b, &mut buf[idx..idx+3]);
 
             let class = classify(&buf, idx).unwrap();
             assert_eq!(class.bytes, b);
@@ -140,7 +140,7 @@ fn classify_prefix_suffix() {
         for pfx in 1 .. ch.len() - 1 {
             let mut buf = JUNK.to_owned();
             let buflen = buf.len();
-            bytes::copy_memory(&mut buf[buflen - pfx .. buflen], &ch[..pfx]);
+            bytes::copy_memory(&ch[..pfx], &mut buf[buflen - pfx .. buflen]);
             for j in 0 .. pfx {
                 let idx = buflen - 1 - j;
                 let class = classify(&buf, idx).unwrap();
@@ -152,7 +152,7 @@ fn classify_prefix_suffix() {
         for sfx in 1 .. ch.len() - 1 {
             let ch_bytes = &ch[ch.len() - sfx ..];
             let mut buf = JUNK.to_owned();
-            bytes::copy_memory(&mut buf, ch_bytes);
+            bytes::copy_memory(ch_bytes, &mut buf);
             for j in 0 .. sfx {
                 let class = classify(&buf, j).unwrap();
                 assert!(ch_bytes.starts_with(class.bytes));
