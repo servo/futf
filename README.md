@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/kmcallister/futf.svg?branch=master)](https://travis-ci.org/kmcallister/futf)
 
 futf is a library for *flexible* UTF-8, or UTF-8 *fragments*. I don't know.
-Check out the [API documentation](https://kmcallister.github.io/futf/futf/index.html).
+Check out the [API documentation](https://kmcallister.github.io/docs/futf/index.html).
 
 Anyway, it takes an index into a byte buffer and tells you things about the
 UTF-8 codepoint containing that byte. It can deal with incomplete codepoint
