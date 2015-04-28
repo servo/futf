@@ -105,6 +105,7 @@ fn all_cont(buf: &[u8]) -> bool {
 // a starting byte followed by the correct number of continuation bytes.
 #[inline(always)]
 unsafe fn decode(buf: &[u8]) -> Option<Meaning> {
+    debug_assert!(buf.len() <= 4);
     let n = match buf.len() {
         2 => ((*buf.get_unchecked(0) & 0b11111) as u32) << 6
             | ((*buf.get_unchecked(1) & 0x3F) as u32),
@@ -184,6 +185,7 @@ pub fn classify<'a>(buf: &'a [u8], idx: usize) -> Option<Codepoint<'a>> {
             },
             Byte::Cont => {
                 let mut start = idx;
+                let mut checked = 0;
                 loop {
                     if start == 0 {
                         // Whoops, fell off the beginning.
@@ -195,12 +197,18 @@ pub fn classify<'a>(buf: &'a [u8], idx: usize) -> Option<Codepoint<'a>> {
                     }
 
                     start -= 1;
+                    checked += 1;
                     match otry!(Byte::classify(*buf.get_unchecked(start))) {
                         Byte::Cont => (),
                         Byte::Start(n) => {
                             let avail = buf.len() - start;
                             if avail >= n {
                                 let bytes = unsafe_slice(buf, start, n);
+                                if checked < n {
+                                    if !all_cont(unsafe_slice(bytes, checked, n-checked)) {
+                                        return None;
+                                    }
+                                }
                                 let meaning = otry!(decode(bytes));
                                 return Some(Codepoint {
                                     bytes: bytes,
@@ -218,7 +226,7 @@ pub fn classify<'a>(buf: &'a [u8], idx: usize) -> Option<Codepoint<'a>> {
                         _ => return None,
                     }
 
-                    if idx - start > 3 {
+                    if idx - start >= 3 {
                         // We looked at 3 bytes before a continuation byte
                         // and didn't find a start byte.
                         return None;

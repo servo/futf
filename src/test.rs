@@ -163,6 +163,34 @@ fn classify_prefix_suffix() {
     }
 }
 
+#[test]
+fn out_of_bounds() {
+    assert!(classify(b"", 0).is_none());
+    assert!(classify(b"", 7).is_none());
+    assert!(classify(b"aaaaaaa", 7).is_none());
+}
+
+#[test]
+fn malformed() {
+    assert_eq!(None, classify(b"\xFF", 0));
+    assert_eq!(None, classify(b"\xC5\xC5", 0));
+    assert_eq!(None, classify(b"x\x91", 1));
+    assert_eq!(None, classify(b"\x91\x91\x91\x91", 3));
+    assert_eq!(None, classify(b"\x91\x91\x91\x91\x91", 4));
+    assert_eq!(None, classify(b"\xEA\x91\xFF", 1));
+    assert_eq!(None, classify(b"\xF0\x90\x90\xF0", 0));
+    assert_eq!(None, classify(b"\xF0\x90\x90\xF0", 1));
+    assert_eq!(None, classify(b"\xF0\x90\x90\xF0", 2));
+
+    for i in 0..4 {
+        // out of range: U+110000
+        assert_eq!(None, classify(b"\xF4\x90\x80\x80", i));
+
+        // out of range: U+1FFFFF
+        assert_eq!(None, classify(b"\xF7\xBF\xBF\xBF", i));
+    }
+}
+
 static TEXT: &'static str = "
     All human beings are born free and equal in dignity and rights.
     They are endowed with reason and conscience and should act
