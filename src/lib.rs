@@ -14,7 +14,6 @@ extern crate mac;
 extern crate test as std_test;
 
 use std::{slice, char, intrinsics};
-use std::raw::{self, Repr};
 
 /// Meaning of a complete or partial UTF-8 codepoint.
 ///
@@ -140,10 +139,9 @@ unsafe fn decode(buf: &[u8]) -> Option<Meaning> {
 
 #[inline(always)]
 unsafe fn unsafe_slice<'a>(buf: &'a [u8], start: usize, new_len: usize) -> &'a [u8] {
-    let raw::Slice { data, len } = buf.repr();
-    debug_assert!(start <= len);
-    debug_assert!(new_len <= (len - start));
-    slice::from_raw_parts(data.offset(start as isize), new_len)
+    debug_assert!(start <= buf.len());
+    debug_assert!(new_len <= (buf.len() - start));
+    slice::from_raw_parts(buf.as_ptr().offset(start as isize), new_len)
 }
 
 macro_rules! otry {
