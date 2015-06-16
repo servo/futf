@@ -46,6 +46,7 @@ fn test_decode() {
         assert_eq!(Some(Meaning::Whole('ő')), decode(b"\xC5\x91"));
         assert_eq!(Some(Meaning::Whole('\u{a66e}')), decode(b"\xEA\x99\xAE"));
         assert_eq!(Some(Meaning::Whole('\u{1f4a9}')), decode(b"\xF0\x9F\x92\xA9"));
+        assert_eq!(Some(Meaning::Whole('\u{10ffff}')), decode(b"\xF4\x8F\xBF\xBF"));
 
         assert_eq!(Some(Meaning::LeadSurrogate(0x0000)), decode(b"\xED\xA0\x80"));
         assert_eq!(Some(Meaning::LeadSurrogate(0x0001)), decode(b"\xED\xA0\x81"));
@@ -60,6 +61,22 @@ fn test_decode() {
         // The last 4-byte UTF-8 sequence. This would be U+1FFFFF, which is out of
         // range.
         assert_eq!(None, decode(b"\xF7\xBF\xBF\xBF"));
+
+        // First otherwise-valid sequence (would be U+110000) that is out of range
+        assert_eq!(None, decode(b"\xF4\x90\x80\x80"));
+
+        // Overlong sequences
+        assert_eq!(None, decode(b"\xC0\x80"));
+        assert_eq!(None, decode(b"\xC1\xBF"));
+        assert_eq!(None, decode(b"\xE0\x80\x80"));
+        assert_eq!(None, decode(b"\xE0\x9F\xBF"));
+        assert_eq!(None, decode(b"\xF0\x80\x80\x80"));
+        assert_eq!(None, decode(b"\xF0\x8F\xBF\xBF"));
+
+        // For not-overlong sequence for each sequence length
+        assert_eq!(Some(Meaning::Whole('\u{80}')), decode(b"\xC2\x80"));
+        assert_eq!(Some(Meaning::Whole('\u{800}')), decode(b"\xE0\xA0\x80"));
+        assert_eq!(Some(Meaning::Whole('\u{10000}')), decode(b"\xF0\x90\x80\x80"));
    }
 }
 
@@ -188,6 +205,14 @@ fn malformed() {
 
         // out of range: U+1FFFFF
         assert_eq!(None, classify(b"\xF7\xBF\xBF\xBF", i));
+
+        // Overlong sequences
+        assert_eq!(None, classify(b"\xC0\x80", i));
+        assert_eq!(None, classify(b"\xC1\xBF", i));
+        assert_eq!(None, classify(b"\xE0\x80\x80", i));
+        assert_eq!(None, classify(b"\xE0\x9F\xBF", i));
+        assert_eq!(None, classify(b"\xF0\x80\x80\x80", i));
+        assert_eq!(None, classify(b"\xF0\x8F\xBF\xBF", i));
     }
 }
 

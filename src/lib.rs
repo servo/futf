@@ -105,30 +105,37 @@ fn all_cont(buf: &[u8]) -> bool {
 // a starting byte followed by the correct number of continuation bytes.
 #[inline(always)]
 unsafe fn decode(buf: &[u8]) -> Option<Meaning> {
+    debug_assert!(buf.len() >= 2);
     debug_assert!(buf.len() <= 4);
-    let n = match buf.len() {
-        2 => ((*buf.get_unchecked(0) & 0b11111) as u32) << 6
-            | ((*buf.get_unchecked(1) & 0x3F) as u32),
-
-        3 => ((*buf.get_unchecked(0) & 0b1111) as u32) << 12
-            | ((*buf.get_unchecked(1) & 0x3F) as u32) << 6
-            | ((*buf.get_unchecked(2) & 0x3F) as u32),
-
-        4 => ((*buf.get_unchecked(0) & 0b111) as u32) << 18
-            | ((*buf.get_unchecked(1) & 0x3F) as u32) << 12
-            | ((*buf.get_unchecked(2) & 0x3F) as u32) << 6
-            | ((*buf.get_unchecked(3) & 0x3F) as u32),
-
+    let n;
+    match buf.len() {
+        2 => {
+            n = ((*buf.get_unchecked(0) & 0b11111) as u32) << 6
+                | ((*buf.get_unchecked(1) & 0x3F) as u32);
+            if n < 0x80 { return None }  // Overlong
+        }
+        3 => {
+            n = ((*buf.get_unchecked(0) & 0b1111) as u32) << 12
+                | ((*buf.get_unchecked(1) & 0x3F) as u32) << 6
+                | ((*buf.get_unchecked(2) & 0x3F) as u32);
+            match n {
+                0x0000 ... 0x07FF => return None,  // Overlong
+                0xD800 ... 0xDBFF => return Some(Meaning::LeadSurrogate(n as u16 - 0xD800)),
+                0xDC00 ... 0xDFFF => return Some(Meaning::TrailSurrogate(n as u16 - 0xDC00)),
+                _ => {}
+            }
+        }
+        4 => {
+            n = ((*buf.get_unchecked(0) & 0b111) as u32) << 18
+                | ((*buf.get_unchecked(1) & 0x3F) as u32) << 12
+                | ((*buf.get_unchecked(2) & 0x3F) as u32) << 6
+                | ((*buf.get_unchecked(3) & 0x3F) as u32);
+            if n < 0x1_0000 { return None }  // Overlong
+        }
         _ => intrinsics::unreachable(),
-    };
-
-    // FIXME: reject overlong encodings?
-
-    match n {
-        0xD800 ... 0xDBFF => Some(Meaning::LeadSurrogate(n as u16 - 0xD800)),
-        0xDC00 ... 0xDFFF => Some(Meaning::TrailSurrogate(n as u16 - 0xDC00)),
-        n => char::from_u32(n).map(|c| Meaning::Whole(c)),
     }
+
+    char::from_u32(n).map(Meaning::Whole)
 }
 
 #[inline(always)]
