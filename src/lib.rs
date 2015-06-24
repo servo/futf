@@ -4,8 +4,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![feature(core)]
-#![cfg_attr(test, feature(test, str_char))]
+#![feature(core_intrinsics)]
+#![cfg_attr(test, feature(test, str_char, slice_bytes))]
 
 #[macro_use]
 extern crate mac;
