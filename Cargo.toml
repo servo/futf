@@ -1,8 +1,11 @@
 [package]
 
 name = "futf"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["Keegan McAllister <kmcallister@mozilla.com>"]
+license = "MIT / Apache-2.0"
+repository = "https://github.com/servo/futf"
+description = "Handling fragments of UTF-8"
 
 [dependencies]
 mac = "0"
