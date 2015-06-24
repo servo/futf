@@ -4,8 +4,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![feature(core)]
-#![cfg_attr(test, feature(test, str_char))]
+#![feature(core_intrinsics)]
+#![cfg_attr(test, feature(test, str_char, slice_bytes))]
 
 #[macro_use]
 extern crate mac;
@@ -14,7 +14,6 @@ extern crate mac;
 extern crate test as std_test;
 
 use std::{slice, char, intrinsics};
-use std::raw::{self, Repr};
 
 /// Meaning of a complete or partial UTF-8 codepoint.
 ///
@@ -105,38 +104,44 @@ fn all_cont(buf: &[u8]) -> bool {
 // a starting byte followed by the correct number of continuation bytes.
 #[inline(always)]
 unsafe fn decode(buf: &[u8]) -> Option<Meaning> {
+    debug_assert!(buf.len() >= 2);
     debug_assert!(buf.len() <= 4);
-    let n = match buf.len() {
-        2 => ((*buf.get_unchecked(0) & 0b11111) as u32) << 6
-            | ((*buf.get_unchecked(1) & 0x3F) as u32),
-
-        3 => ((*buf.get_unchecked(0) & 0b1111) as u32) << 12
-            | ((*buf.get_unchecked(1) & 0x3F) as u32) << 6
-            | ((*buf.get_unchecked(2) & 0x3F) as u32),
-
-        4 => ((*buf.get_unchecked(0) & 0b111) as u32) << 18
-            | ((*buf.get_unchecked(1) & 0x3F) as u32) << 12
-            | ((*buf.get_unchecked(2) & 0x3F) as u32) << 6
-            | ((*buf.get_unchecked(3) & 0x3F) as u32),
-
+    let n;
+    match buf.len() {
+        2 => {
+            n = ((*buf.get_unchecked(0) & 0b11111) as u32) << 6
+                | ((*buf.get_unchecked(1) & 0x3F) as u32);
+            if n < 0x80 { return None }  // Overlong
+        }
+        3 => {
+            n = ((*buf.get_unchecked(0) & 0b1111) as u32) << 12
+                | ((*buf.get_unchecked(1) & 0x3F) as u32) << 6
+                | ((*buf.get_unchecked(2) & 0x3F) as u32);
+            match n {
+                0x0000 ... 0x07FF => return None,  // Overlong
+                0xD800 ... 0xDBFF => return Some(Meaning::LeadSurrogate(n as u16 - 0xD800)),
+                0xDC00 ... 0xDFFF => return Some(Meaning::TrailSurrogate(n as u16 - 0xDC00)),
+                _ => {}
+            }
+        }
+        4 => {
+            n = ((*buf.get_unchecked(0) & 0b111) as u32) << 18
+                | ((*buf.get_unchecked(1) & 0x3F) as u32) << 12
+                | ((*buf.get_unchecked(2) & 0x3F) as u32) << 6
+                | ((*buf.get_unchecked(3) & 0x3F) as u32);
+            if n < 0x1_0000 { return None }  // Overlong
+        }
         _ => intrinsics::unreachable(),
-    };
-
-    // FIXME: reject overlong encodings?
-
-    match n {
-        0xD800 ... 0xDBFF => Some(Meaning::LeadSurrogate(n as u16 - 0xD800)),
-        0xDC00 ... 0xDFFF => Some(Meaning::TrailSurrogate(n as u16 - 0xDC00)),
-        n => char::from_u32(n).map(|c| Meaning::Whole(c)),
     }
+
+    char::from_u32(n).map(Meaning::Whole)
 }
 
 #[inline(always)]
 unsafe fn unsafe_slice<'a>(buf: &'a [u8], start: usize, new_len: usize) -> &'a [u8] {
-    let raw::Slice { data, len } = buf.repr();
-    debug_assert!(start <= len);
-    debug_assert!(new_len <= (len - start));
-    slice::from_raw_parts(data.offset(start as isize), new_len)
+    debug_assert!(start <= buf.len());
+    debug_assert!(new_len <= (buf.len() - start));
+    slice::from_raw_parts(buf.as_ptr().offset(start as isize), new_len)
 }
 
 macro_rules! otry {
