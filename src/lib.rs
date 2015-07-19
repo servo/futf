@@ -4,8 +4,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![feature(core_intrinsics)]
 #![cfg_attr(test, feature(test, str_char, slice_bytes))]
+
+#[macro_use]
+extern crate debug_unreachable;
 
 #[macro_use]
 extern crate mac;
@@ -13,7 +15,7 @@ extern crate mac;
 #[cfg(test)]
 extern crate test as std_test;
 
-use std::{slice, char, intrinsics};
+use std::{slice, char};
 
 /// Meaning of a complete or partial UTF-8 codepoint.
 ///
@@ -131,7 +133,7 @@ unsafe fn decode(buf: &[u8]) -> Option<Meaning> {
                 | ((*buf.get_unchecked(3) & 0x3F) as u32);
             if n < 0x1_0000 { return None }  // Overlong
         }
-        _ => intrinsics::unreachable(),
+        _ => debug_unreachable!(),
     }
 
     char::from_u32(n).map(Meaning::Whole)

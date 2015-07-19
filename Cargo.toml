@@ -8,4 +8,5 @@ repository = "https://github.com/servo/futf"
 description = "Handling fragments of UTF-8"
 
 [dependencies]
-mac = "0"
+mac = "0.0"
+debug_unreachable = "0.0"
