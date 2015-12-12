@@ -1,6 +1,6 @@
 # futf
 
-[![Build Status](https://travis-ci.org/kmcallister/futf.svg?branch=master)](https://travis-ci.org/kmcallister/futf)
+[![Build Status](https://travis-ci.org/servo/futf.svg?branch=master)](https://travis-ci.org/kmcallister/futf)
 
 futf is a library for *flexible* UTF-8, or UTF-8 *fragments*. I don't know.
 Check out the [API documentation](http://doc.servo.org/futf/index.html).
