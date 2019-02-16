@@ -4,7 +4,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![cfg_attr(test, feature(test, str_char))]
+#![cfg_attr(test, feature(test))]
 
 #[macro_use]
 extern crate debug_unreachable;
