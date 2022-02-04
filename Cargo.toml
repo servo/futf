@@ -9,4 +9,4 @@ description = "Handling fragments of UTF-8"
 
 [dependencies]
 mac = "0.1.0"
-new_debug_unreachable = "1.0.0"
+new_debug_unreachable = "1.0.2"
