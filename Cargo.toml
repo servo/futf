@@ -3,7 +3,7 @@
 name = "futf"
 version = "0.1.5"
 authors = ["Keegan McAllister <kmcallister@mozilla.com>"]
-license = "MIT / Apache-2.0"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/servo/futf"
 description = "Handling fragments of UTF-8"
 
