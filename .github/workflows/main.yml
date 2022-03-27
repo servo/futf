@@ -19,7 +19,7 @@ jobs:
         with:
           command: test
           
-   build_result:
+  build_result:
     name: homu build finished
     runs-on: ubuntu-latest
     needs:
