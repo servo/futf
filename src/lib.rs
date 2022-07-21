@@ -161,8 +161,8 @@ pub fn classify<'a>(buf: &'a [u8], idx: usize) -> Option<Codepoint<'a>> {
         return None;
     }
 
+    let x = unsafe { *buf.get_unchecked(idx) };
     unsafe {
-        let x = *buf.get_unchecked(idx);
         match otry!(Byte::classify(x)) {
             Byte::Ascii => Some(Codepoint {
                 bytes: unsafe_slice(buf, idx, 1),
