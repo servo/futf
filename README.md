@@ -1,6 +1,6 @@
 # futf
 
-[![Build Status](https://travis-ci.org/servo/futf.svg?branch=master)](https://travis-ci.org/servo/futf)
+**DEPRECATED: This repository has been merged into https://github.com/servo/tendril**
 
 futf is a library for *flexible* UTF-8, or UTF-8 *fragments*. I don't know.
 Check out the [API documentation](https://doc.servo.org/futf/index.html).
